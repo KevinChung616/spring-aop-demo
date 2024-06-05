@@ -51,7 +51,7 @@ public class AuditAspect {
 
 ### Security Checks
 
-```
+```java
 package com.jtsp.springaopdemo.aspect;
 
 import org.aspectj.lang.ProceedingJoinPoint;

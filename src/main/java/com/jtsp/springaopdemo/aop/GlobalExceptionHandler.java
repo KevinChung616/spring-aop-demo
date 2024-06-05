@@ -1,5 +1,7 @@
 package com.jtsp.springaopdemo.aop;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -45,5 +48,41 @@ public class GlobalExceptionHandler {
         errors.put("exception", ex.getMessage());
         log.error("HTTP request method not supported exception : {}", ex.getMessage());
         return new ResponseEntity<>(errors, HttpStatus.METHOD_NOT_ALLOWED);
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<Map<String, String>> handleConstraintViolationException(ConstraintViolationException ex,
+                                                                WebRequest webRequest) {
+        Map<String, String> errors = new HashMap<>();
+        errors.put("path", webRequest.getContextPath());
+        errors.put("web request desc", webRequest.getDescription(false));
+        errors.put("violdations", ex.getConstraintViolations()
+                .stream()
+                .map(ConstraintViolation::getMessage)
+                .toList()
+                .toString()
+        );
+        errors.put("exception", ex.getMessage());
+        log.error("Constraint Violation exception : {}", ex.getMessage());
+        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    public ResponseEntity<Map<String, String>> handleConstraintViolationException(HandlerMethodValidationException ex,
+                                                                                  WebRequest webRequest) {
+        Map<String, String> errors = new HashMap<>();
+        errors.put("path", webRequest.getContextPath());
+        errors.put("web request desc", webRequest.getDescription(false));
+        errors.put("violations", ex.getAllValidationResults()
+                .stream()
+                .map(r -> r.getArgument() + " " + r.getResolvableErrors())
+                .toList()
+                .toString()
+        );
+        errors.put("exception", ex.getMessage());
+        log.error("handler method violation exception : {}", ex.getMessage());
+        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 }
