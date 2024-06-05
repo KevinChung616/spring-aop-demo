@@ -1,5 +1,6 @@
 package com.jtsp.springaopdemo.aop;
 
+import com.jtsp.springaopdemo.exception.UserNotFoundException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
@@ -69,6 +70,18 @@ public class GlobalExceptionHandler {
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleConstraintViolationException(UserNotFoundException ex,
+                                                                                  WebRequest webRequest) {
+        Map<String, String> errors = new HashMap<>();
+        errors.put("path", webRequest.getContextPath());
+        errors.put("web request desc", webRequest.getDescription(false));
+        errors.put("exception", ex.getMessage());
+        log.error("User Not Found exception : {}", ex.getMessage());
+        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(HandlerMethodValidationException.class)
     public ResponseEntity<Map<String, String>> handleConstraintViolationException(HandlerMethodValidationException ex,
                                                                                   WebRequest webRequest) {
@@ -84,5 +97,17 @@ public class GlobalExceptionHandler {
         errors.put("exception", ex.getMessage());
         log.error("handler method violation exception : {}", ex.getMessage());
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    }
+
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    public ResponseEntity<Map<String, String>> handleConstraintViolationException(RuntimeException ex,
+                                                                                  WebRequest webRequest) {
+        Map<String, String> errors = new HashMap<>();
+        errors.put("path", webRequest.getContextPath());
+        errors.put("web request desc", webRequest.getDescription(false));
+        errors.put("exception", ex.getMessage());
+        log.error("internal server error : {}", ex.getMessage());
+        return new ResponseEntity<>(errors, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

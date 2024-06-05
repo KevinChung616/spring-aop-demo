@@ -6,6 +6,11 @@ This is a demo project of spring boot 3 with aop.
 
 Code: `JTSP - 2 - 4 - 1`
 
+## Architecture
+![](architecture.png)
+
+Instead of calling real DB, we are calling a 3rd party API.
+
 ## Tech stack
 
 + Spring Boot 3
@@ -13,6 +18,39 @@ Code: `JTSP - 2 - 4 - 1`
 + Spring Validator
 + Spring AOP
 
+
+## Type of Exception
+
+API: PUT `/users/-1`
+```java
+@PutMapping("/{id}") // PUT localhost:8080/users/1
+public ResponseEntity<User> updateUserById(@PathVariable @Min(1L) Long id, @RequestBody User user) {
+    return ResponseEntity.ok(userService.updateUserById(id, user).get());
+}
+```
+Exception: `org.springframework.web.method.annotation.HandlerMethodValidationException`
+
+---
+
+API: POST `/users` with not valid DTO
+```java
+@PostMapping // POST localhost:8080/users
+public ResponseEntity<User> createNewUser(@Valid @RequestBody User user) {
+    return ResponseEntity.ok(userService.createNewUser(user).get());
+}
+```
+Exception: `org.springframework.web.bind.MethodArgumentNotValidException`
+
+---
+
+API: DELETE `/users` 
+```java
+@PostMapping // POST localhost:8080/users
+public ResponseEntity<User> createNewUser(@Valid @RequestBody User user) {
+    return ResponseEntity.ok(userService.createNewUser(user).get());
+}
+```
+Exception: `org.springframework.web.HttpRequestMethodNotSupportedException`
 
 ## Common AOP Usage
 
